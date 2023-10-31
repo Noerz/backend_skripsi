@@ -15,12 +15,28 @@ module.exports = function(sequelize, DataTypes) {
         key: 'id'
       }
     },
+    user_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'user',
+        key: 'id'
+      }
+    },
+    admin_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'admin',
+        key: 'id'
+      }
+    },
     name: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(55),
       allowNull: true
     },
     email: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(100),
       allowNull: true
     },
     body: {
@@ -45,6 +61,20 @@ module.exports = function(sequelize, DataTypes) {
         using: "BTREE",
         fields: [
           { name: "post_id" },
+        ]
+      },
+      {
+        name: "user_id",
+        using: "BTREE",
+        fields: [
+          { name: "user_id" },
+        ]
+      },
+      {
+        name: "admin_id",
+        using: "BTREE",
+        fields: [
+          { name: "admin_id" },
         ]
       },
     ]

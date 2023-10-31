@@ -16,14 +16,20 @@ function initModels(sequelize) {
   var todo = _todo(sequelize, DataTypes);
   var user = _user(sequelize, DataTypes);
 
-  post.belongsTo(admin, { as: "user", foreignKey: "user_id"});
-  admin.hasMany(post, { as: "posts", foreignKey: "user_id"});
-  todo.belongsTo(admin, { as: "user", foreignKey: "user_id"});
-  admin.hasMany(todo, { as: "todos", foreignKey: "user_id"});
+  comment.belongsTo(admin, { as: "admin", foreignKey: "admin_id"});
+  admin.hasMany(comment, { as: "comments", foreignKey: "admin_id"});
+  post.belongsTo(admin, { as: "admin", foreignKey: "admin_id"});
+  admin.hasMany(post, { as: "posts", foreignKey: "admin_id"});
+  todo.belongsTo(admin, { as: "admin", foreignKey: "admin_id"});
+  admin.hasMany(todo, { as: "todos", foreignKey: "admin_id"});
+  admin.belongsTo(auth, { as: "auth", foreignKey: "auth_id"});
+  auth.hasMany(admin, { as: "admins", foreignKey: "auth_id"});
   admin.belongsTo(division, { as: "division", foreignKey: "division_id"});
   division.hasMany(admin, { as: "admins", foreignKey: "division_id"});
   comment.belongsTo(post, { as: "post", foreignKey: "post_id"});
   post.hasMany(comment, { as: "comments", foreignKey: "post_id"});
+  comment.belongsTo(user, { as: "user", foreignKey: "user_id"});
+  user.hasMany(comment, { as: "comments", foreignKey: "user_id"});
 
   return {
     admin,

@@ -3,7 +3,7 @@ const initModels = require("../models/init-models");
 const models = initModels(db);
 const { Op } = require("sequelize")
 
-const getUsers = async (req, res) => {
+const getPost = async (req, res) => {
     try {
         const { id } = req.query;
         const whereCondition = {};
@@ -12,7 +12,18 @@ const getUsers = async (req, res) => {
             whereCondition.id = id;
         }
 
-        const response = await db.query("SELECT name,email,gender FROM user INNER JOIN auth ON user.auth_id = auth.id;")
+        const response = await models.post.findAll({
+            where: whereCondition,
+            // attributes: ['id', 'name', 'email', 'gender', 'status'],
+            attributes: ['id', 'user_id', 'title', 'body'],
+            // include: [
+            //     {
+            //         model: models.division,
+            //         attributes: ["name"],
+            //         as: 'division'
+            //     }
+            // ]
+        });
 
         res.status(200).json(response);
     } catch (error) {
@@ -20,14 +31,14 @@ const getUsers = async (req, res) => {
     }
 }
 
-const createUser = async (req, res) => {
+const createPost = async (req, res) => {
     try {
         const body = {
-            name: req.body.name,
-            email: req.body.email,
-            gender: req.body.gender,
+            user_id:req.body.user_id,
+            title: req.body.title,
+            body: req.body.body,
         }
-        const response = await models.user.create(body);
+        const response = await models.post.create(body);
         res.status(201).json({ msg: "success", response });
     } catch (error) {
         res.status(500).json({ msg: error.message });
@@ -80,4 +91,4 @@ const deleteUser = async (req, res) => {
     }
 }
 
-module.exports = { getUsers, createUser, updateUser, deleteUser }
+module.exports = { getPost, createPost, updateUser, deleteUser }

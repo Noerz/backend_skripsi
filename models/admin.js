@@ -7,15 +7,6 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       primaryKey: true
     },
-    name: {
-      type: DataTypes.STRING(255),
-      allowNull: true
-    },
-    email: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-      unique: "email"
-    },
     gender: {
       type: DataTypes.ENUM('Male','Female'),
       allowNull: true
@@ -24,9 +15,17 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.ENUM('Active','Inactive'),
       allowNull: true
     },
+    auth_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'auth',
+        key: 'id'
+      }
+    },
     division_id: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
       references: {
         model: 'division',
         key: 'id'
@@ -46,11 +45,10 @@ module.exports = function(sequelize, DataTypes) {
         ]
       },
       {
-        name: "email",
-        unique: true,
+        name: "auth_id",
         using: "BTREE",
         fields: [
-          { name: "email" },
+          { name: "auth_id" },
         ]
       },
       {

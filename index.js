@@ -15,7 +15,6 @@ app.use(express.static("public"));
 app.get('/', (req, res) => {
     res.send('Hello World');
 })
-app.use(DivisiRoute);
 app.use('/api/v1', routes);
 
 

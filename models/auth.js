@@ -1,14 +1,14 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('auth', {
-    auth_id: {
+    id: {
       autoIncrement: true,
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true
     },
     name: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.STRING(55),
       allowNull: false
     },
     email: {
@@ -17,22 +17,22 @@ module.exports = function(sequelize, DataTypes) {
       unique: "email"
     },
     password: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.TEXT,
       allowNull: false
     },
     role: {
-      type: DataTypes.STRING(10),
+      type: DataTypes.STRING(5),
       allowNull: false
     },
     createdAt: {
       type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: Sequelize.Sequelize.fn('current_timestamp')
+      defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP')
     },
     updatedAt: {
       type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: Sequelize.Sequelize.fn('current_timestamp')
+      defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
     sequelize,
@@ -44,7 +44,7 @@ module.exports = function(sequelize, DataTypes) {
         unique: true,
         using: "BTREE",
         fields: [
-          { name: "auth_id" },
+          { name: "id" },
         ]
       },
       {

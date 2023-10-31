@@ -1,8 +1,12 @@
 const express = require("express");
-const { getStruktur } = require("../controller/DivisiController");
+const { getDivisi, createDivisi, updateDivisi } = require("../controller/DivisiController");
 
 const router = express.Router();
 
-router.get('/struktur', getStruktur);
+const divisiRoutes = (router) => {
+    router.get('/divisi', getDivisi);
+    router.post('/divisi', createDivisi);
+    router.patch('/divisi/:id', updateDivisi);
+}
 
-module.exports = router;
+module.exports = {divisiRoutes};

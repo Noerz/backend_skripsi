@@ -7,7 +7,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       primaryKey: true
     },
-    user_id: {
+    admin_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
@@ -16,7 +16,7 @@ module.exports = function(sequelize, DataTypes) {
       }
     },
     title: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING(100),
       allowNull: true
     },
     body: {
@@ -40,7 +40,7 @@ module.exports = function(sequelize, DataTypes) {
         name: "user_id",
         using: "BTREE",
         fields: [
-          { name: "user_id" },
+          { name: "admin_id" },
         ]
       },
     ]

@@ -30,7 +30,7 @@ const getAdmin = async (req, res) => {
             let obj = {
                 id: x.id,
                 gender: x.gender,
-                sttus: x.status,
+                status: x.status,
                 name: x.auth.name,
                 auth_id: x.auth.id,
                 email: x.auth.email,

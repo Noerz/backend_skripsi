@@ -24,6 +24,8 @@ function initModels(sequelize) {
   admin.hasMany(todo, { as: "todos", foreignKey: "admin_id"});
   admin.belongsTo(auth, { as: "auth", foreignKey: "auth_id"});
   auth.hasMany(admin, { as: "admins", foreignKey: "auth_id"});
+  user.belongsTo(auth, { as: "auth", foreignKey: "auth_id"});
+  auth.hasMany(user, { as: "users", foreignKey: "auth_id"});
   admin.belongsTo(division, { as: "division", foreignKey: "division_id"});
   division.hasMany(admin, { as: "admins", foreignKey: "division_id"});
   comment.belongsTo(post, { as: "post", foreignKey: "post_id"});

@@ -8,7 +8,7 @@ const { isAdmin, isUser, verifyToken } = require("../middleware/VerifyAuth");
 // router.get('/users', getUsers);
 
 const adminRoutes = (router) => {
-    router.get('/admin', verifyToken, getAdmin);
+    router.get('/admin', getAdmin);
     router.post('/admin', isAdmin, createAdmin);
     router.patch('/admin', isAdmin, updateAdmin);
     router.put('/admin', isAdmin, updateAdmin);

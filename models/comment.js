@@ -31,14 +31,6 @@ module.exports = function(sequelize, DataTypes) {
         key: 'id'
       }
     },
-    name: {
-      type: DataTypes.STRING(55),
-      allowNull: true
-    },
-    email: {
-      type: DataTypes.STRING(100),
-      allowNull: true
-    },
     body: {
       type: DataTypes.TEXT,
       allowNull: true

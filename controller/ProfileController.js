@@ -5,7 +5,7 @@ const { Op } = require("sequelize")
 
 const getProfile = async (req, res) => {
   try {
-    const { admin_id, user_id, role } = req.decoded;
+    const { admin_id, user_id, role,name,email } = req.decoded;
 
     // Check Role
     if (role == 'admin') {
@@ -14,13 +14,34 @@ const getProfile = async (req, res) => {
           id: admin_id
         }
       });
-      res.status(200).json(response);
+      let array = [];
+        for (const x of response) {
+            let obj = {
+                id: x.id,
+                gender: x.gender,
+                status: x.status,
+                name: name,
+                email: email,
+            }
+            array.push(obj);
+        }
+      res.status(200).json(array);
       res.end();
     } else {
       const response = await models.user.findAll({
         where: user_id
       });
-      res.status(200).json(response);
+      let array = [];
+        for (const x of response) {
+            let obj = {
+                id: x.id,
+                gender: x.gender,
+                name: name,
+                email: email,
+            }
+            array.push(obj);
+        }
+      res.status(200).json(array);
       res.end();
     }
 
@@ -32,11 +53,12 @@ const getProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const { admin_id, user_id, role } = req.decoded;
-    const { name, email } = req.body; // Mengambil nilai name dan email dari req.body
+    const { name, email,password } = req.body; // Mengambil nilai name dan email dari req.body
     const body = {
       name: name,
       email: email,
     };
+    
     if (role == 'admin') {
       await models.auth.update(body, {
         where: {

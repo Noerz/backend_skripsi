@@ -13,7 +13,11 @@ module.exports = function(sequelize, DataTypes) {
     },
     auth_id: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: false,
+      references: {
+        model: 'auth',
+        key: 'id'
+      }
     }
   }, {
     sequelize,

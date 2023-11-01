@@ -3,7 +3,7 @@ const initModels = require("../models/init-models");
 const models = initModels(db);
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-
+const nodemailer = require("nodemailer");
 
 const Register = async (req, res) => {
   try {
@@ -59,7 +59,7 @@ const login = async (req, res) => {
     // Check Role Login
     let accessToken;
     if (auth[0].role == 'admin') {
-      console.log('admin kontol')
+      console.log('admin')
       const admin = await models.admin.findAll({
         where: {
           auth_id: auth[0].id
@@ -73,7 +73,7 @@ const login = async (req, res) => {
       console.log(admin_id)
       accessToken = jwt.sign({ auth_id, name, email, role, admin_id }, process.env.ACCESS_TOKEN_SECRET);
     } else {
-      console.log('user memek')
+      console.log('user')
       const user = await models.user.findAll({
         where: {
           auth_id: auth[0].id
@@ -94,4 +94,56 @@ const login = async (req, res) => {
   }
 }
 
-module.exports = { Register, login };
+const resetPassword = async (req, res) => {
+  try {
+    let transporter = nodemailer.createTransport({
+      service: process.env.SERVICE_MAIL,
+      host: process.env.HOST_MAIL,
+      port: process.env.PORT_MAIL,
+      secure:true,
+      auth: {
+        user: process.env.USER_MAIL,
+        pass: process.env.PASS_MAIL,
+      }
+    });
+    const { email } = req.body; // Mengambil nilai name dan email dari req.body
+
+    if (email == null) return res.status(400).json({ msg: 'Email Kosong' });
+    if (!`${email}`.includes('@')) return res.status(400).json({ msg: 'Invalid Email' });
+
+    let password = 'HIMTIF#';
+    const character = process.env.RANDOM_PASSWORD;
+    const characterLength = character.length;
+    let count = 0;
+    while (count < 8) {
+      password += character.charAt(Math.floor(Math.random() * characterLength));
+      count += 1;
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    await models.auth.update(
+      { password: hashedPassword },
+      {
+        where: {
+          email: email
+        }
+      }
+    );
+
+    const mailOptions = {
+      from: process.env.USER_MAIL,
+      to: email,
+      subject: 'Reset Password',
+      text: `Password baru Anda: ${password}`
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({ msg: 'Password reset successful' });
+  } catch (error) {
+    res.status(500).json({ msg: error.message });
+  }
+}
+module.exports = { Register, login,resetPassword };

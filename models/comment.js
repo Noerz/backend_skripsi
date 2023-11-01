@@ -15,19 +15,11 @@ module.exports = function(sequelize, DataTypes) {
         key: 'id'
       }
     },
-    user_id: {
+    auth_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'user',
-        key: 'id'
-      }
-    },
-    admin_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'admin',
+        model: 'auth',
         key: 'id'
       }
     },
@@ -59,14 +51,7 @@ module.exports = function(sequelize, DataTypes) {
         name: "user_id",
         using: "BTREE",
         fields: [
-          { name: "user_id" },
-        ]
-      },
-      {
-        name: "admin_id",
-        using: "BTREE",
-        fields: [
-          { name: "admin_id" },
+          { name: "auth_id" },
         ]
       },
     ]

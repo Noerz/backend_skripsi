@@ -14,11 +14,32 @@ const getComment = async (req, res) => {
 
         const response = await models.comment.findAll({
             where: whereCondition,
-            // attributes: ['id', 'name', 'email', 'gender', 'status'],
-            attributes: ['id', 'post_id', 'user_id','name', 'email','body'],
+            include: [
+                {
+                    model: models.auth,
+                    as: 'auth',
+                },
+                {
+                    model: models.post,
+                    as: 'post',
+                }
+            ],
         });
+        let array = [];
+        for (const x of response) {
+            let obj = {
+                id: x.id,
+                body: x.body,
+                name: x.auth.name,
+                auth_id: x.auth.id,
+                email: x.auth.email,
+                post_id: x.post.id,
+                tittle: x.post.tittle,
+            }
+            array.push(obj);
+        }
 
-        res.status(200).json(response);
+        res.status(200).json(array);
     } catch (error) {
         res.status(500).json({ msg: error.message });
     }
@@ -59,11 +80,11 @@ const updateComment = async (req, res) => {
     });
     if (!comment) return res.status(404).json({ msg: "Comment tidak ditemukan" });
     const body = {
-        post_id:req.body.post_id,
-        user_id:req.body.user_id,
-            name: req.body.name,
-            email: req.body.email,
-            body: req.body.body,
+        post_id: req.body.post_id,
+        user_id: req.body.user_id,
+        name: req.body.name,
+        email: req.body.email,
+        body: req.body.body,
     }
 
     try {
@@ -97,4 +118,4 @@ const deleteComment = async (req, res) => {
     }
 }
 
-module.exports = { getComment,createComment,updateComment,deleteComment }
+module.exports = { getComment, createComment, updateComment, deleteComment }

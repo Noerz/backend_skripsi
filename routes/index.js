@@ -5,6 +5,7 @@ const { divisiRoutes } = require('./DivisiRoute');
 const { postRoutes } = require('./PostRoute');
 const { adminRoutes } = require('./AdminRoute');
 const {commentRoutes}=require('./CommentRoute');
+const { todoRoutes } = require('./TodoRoute');
 
 
 const router = express.Router();
@@ -15,5 +16,6 @@ divisiRoutes(router);
 postRoutes(router);
 adminRoutes(router);
 commentRoutes(router);
+todoRoutes(router);
 
 module.exports = router;

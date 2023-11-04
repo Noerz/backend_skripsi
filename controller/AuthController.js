@@ -100,15 +100,19 @@ const resetPassword = async (req, res) => {
       service: process.env.SERVICE_MAIL,
       host: process.env.HOST_MAIL,
       port: process.env.PORT_MAIL,
-      secure:true,
+      secure: true,
       auth: {
         user: process.env.USER_MAIL,
         pass: process.env.PASS_MAIL,
       }
     });
     const { email } = req.body; // Mengambil nilai name dan email dari req.body
-
     if (email == null) return res.status(400).json({ msg: 'Email Kosong' });
+    // Tambahkan kondisi untuk memeriksa apakah email terdaftar dalam autentikasi
+    const user = await models.auth.findOne({ where: { email: email } });
+    if (!user) return res.status(400).json({ msg: 'Email tidak terdaftar' });
+
+
     if (!`${email}`.includes('@')) return res.status(400).json({ msg: 'Invalid Email' });
 
     let password = 'HIMTIF#';
@@ -146,4 +150,4 @@ const resetPassword = async (req, res) => {
     res.status(500).json({ msg: error.message });
   }
 }
-module.exports = { Register, login,resetPassword };
+module.exports = { Register, login, resetPassword };

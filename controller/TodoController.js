@@ -25,11 +25,11 @@ const getTodo = async (req, res) => {
         for (const x of response) {
             let obj = {
                 id: x.id,
-                admin_id:x.admin_id,
+                admin_id: x.admin_id,
                 title: x.title,
                 due_on: x.due_on,
                 status: x.status,
-                
+
             }
             array.push(obj);
         }
@@ -39,84 +39,64 @@ const getTodo = async (req, res) => {
         res.status(500).json({ msg: error.message });
     }
 }
-// const getAdmin = async (req, res) => {
-//     try {
-//       const { id } = req.query;
-//       const whereCondition = {};
 
-//       if (id) {
-//         whereCondition.id = id;
-//       }
-
-//       const response = await db.query("SELECT admin.*, auth.name AS auth_name, auth.email AS auth_email FROM admin JOIN auth ON admin.auth_id = auth.id; ")
-
-//       res.status(200).json(response);
-//     } catch (error) {
-//       res.status(500).json({ msg: error.message });
-//     }
-//   };
-const createAdmin = async (req, res) => {
+const createTodo = async (req, res) => {
     try {
         const body = {
-            name: req.body.name,
-            email: req.body.email,
-            gender: req.body.gender,
+            admin_id: req.body.admin_id,
+            title: req.body.title,
+            due_on: req.body.due_on,
             status: req.body.status,
-            division_id: req.body.division_id
         }
-        const response = await models.admin.create(body);
+        const response = await models.todo.create(body);
         res.status(201).json({ msg: "success", response });
     } catch (error) {
         res.status(500).json({ msg: error.message });
     }
 }
 
-const updateAdmin = async (req, res) => {
-    const admin = await models.admin.findOne({
+const updateTodo = async (req, res) => {
+    const todo = await models.todo.findOne({
         where: {
             id: req.query.id
         }
     });
-    if (!admin) return res.status(404).json({ msg: "Admin tidak ditemukan" });
+    if (!todo) return res.status(404).json({ msg: "Kegiatan tidak ditemukan" });
     const body = {
-        name: req.body.name,
-        email: req.body.email,
+        title: req.body.title,
+        due_on: req.body.due_on,
+        status: req.body.status,
     }
 
     try {
-        await models.auth.update(body, {
+        await models.todo.update(body, {
             where: {
-                id: admin.auth_id
+                id: todo.id
             }
         });
-        await models.division.update(body, {
-            where: {
-                id: admin.auth_id
-            }
-        });
-        res.status(200).json({ msg: "Admin Updated" });
+        res.status(200).json({ msg: "Kegiatan Updated" });
     } catch (error) {
         res.status(400).json({ msg: error.message });
     }
 }
 
-const deleteAdmin = async (req, res) => {
-    const admin = await models.admin.findOne({
+const deleteTodo = async (req, res) => {
+    const todo = await models.todo.findOne({
         where: {
             id: req.query.id
         }
     });
-    if (!admin) return res.status(404).json({ msg: "Admin tidak ditemukan" });
+    if (!todo) return res.status(404).json({ msg: "Kegiatan tidak ditemukan" });
     try {
-        await models.admin.destroy({
+        await models.todo.destroy({
             where: {
-                id: admin.id
+                id: todo.id
             }
         });
-        res.status(200).json({ msg: "Admin Deleted" });
+        res.status(200).json({ msg: "Kegiatan Deleted" });
     } catch (error) {
         res.status(400).json({ msg: error.message });
     }
 }
 
-module.exports = { getTodo, createAdmin, updateAdmin, deleteAdmin }
+module.exports = { getTodo, createTodo,updateTodo,deleteTodo}

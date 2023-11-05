@@ -16,8 +16,8 @@ function initModels(sequelize) {
   var todo = _todo(sequelize, DataTypes);
   var user = _user(sequelize, DataTypes);
 
-  post.belongsTo(admin, { as: "admin", foreignKey: "admin_id"});
-  admin.hasMany(post, { as: "posts", foreignKey: "admin_id"});
+  post.belongsTo(admin, { as: "user", foreignKey: "user_id"});
+  admin.hasMany(post, { as: "posts", foreignKey: "user_id"});
   todo.belongsTo(admin, { as: "admin", foreignKey: "admin_id"});
   admin.hasMany(todo, { as: "todos", foreignKey: "admin_id"});
   admin.belongsTo(auth, { as: "auth", foreignKey: "auth_id"});

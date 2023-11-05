@@ -47,30 +47,29 @@ const getComment = async (req, res) => {
 
 const createComment = async (req, res) => {
     try {
-        const body = {
-            post_id: req.body.post_id,
-            user_id: req.body.user_id,
-            body: req.body.body,
-        };
-
-        // Mengambil data pengguna berdasarkan user_id
-        const user = await models.admin.findOne({ where: { id: req.body.user_id } });
-
-        // Memastikan pengguna ditemukan
-        if (!user) {
-            return res.status(404).json({ msg: 'User not found' });
-        }
-
-        // Mengisi otomatis nama dan email dari pengguna terkait
-        body.name = user.name;
-        body.email = user.email;
-
-        const response = await models.comment.create(body);
-        res.status(201).json({ msg: 'success', response });
+      const { post_id, auth_id, body } = req.body;
+  
+      // Mengambil data pengguna berdasarkan auth_id
+      const user = await models.auth.findOne({ where: { id: auth_id } });
+  
+      // Memastikan pengguna ditemukan
+      if (!user) {
+        return res.status(404).json({ msg: 'User not found' });
+      }
+  
+      const commentData = {
+        post_id: post_id,
+        auth_id: auth_id,
+        body: body,
+        name: user.name
+      };
+  
+      const response = await models.comment.create(commentData);
+      res.status(201).json({ msg: 'success', response });
     } catch (error) {
-        res.status(500).json({ msg: error.message });
+      res.status(500).json({ msg: error.message });
     }
-};
+  }
 
 const updateComment = async (req, res) => {
     const comment = await models.comment.findOne({

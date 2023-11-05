@@ -12,6 +12,7 @@ const postRoutes = (router) => {
     router.post('/posts',isAdmin, createPost);
     router.get('/users/:id/posts',getPost);
     router.put('/posts',updatePost);
+    router.patch('/posts',updatePost);
     router.delete('/posts', deletePost);
 }
 

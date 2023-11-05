@@ -11,6 +11,7 @@ const commentRoutes = (router) => {
     router.post('/comments', createComment);
     router.get('/users/:id/comments',getComment)
     router.put('/comments', updateComment);
+    router.patch('/comments', updateComment);
     router.delete('/comments', deleteComment);
 }
 

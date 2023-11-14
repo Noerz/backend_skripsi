@@ -1,4 +1,5 @@
 const db = require("../config/Database");
+const admin = require("../models/admin");
 const initModels = require("../models/init-models");
 const models = initModels(db);
 const { Op } = require("sequelize")
@@ -33,8 +34,11 @@ const getPost = async (req, res) => {
 
 const createPost = async (req, res) => {
     try {
+
+        const { admin_id, user_id, role, name, email } = req.decoded;
+        console.log(admin_id);
         const body = {
-            admin_id:req.body.admin_id,
+            user_id:admin_id,
             title: req.body.title,
             body: req.body.body,
         }

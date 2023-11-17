@@ -1,7 +1,8 @@
 const db = require("../config/Database");
 const initModels = require("../models/init-models");
 const models = initModels(db);
-const { Op } = require("sequelize")
+const { Op } = require("sequelize");
+const bcrypt = require('bcrypt');
 
 const getProfile = async (req, res) => {
   try {
@@ -72,28 +73,36 @@ const updateProfile = async (req, res) => {
   }
 };
 
-const updatePassword = async (req, res) => {
+
+
+const changePassword = async (req, res) => {
   try {
-    const admin = await models.admin.findOne({
-      where: {
-        id: req.query.id
-      }
-    });
-    if (!admin) return res.status(404).json({ msg: "Admin tidak ditemukan" });
+    const { user_id, auth_id } = req.decoded;
+    const { oldPassword, newPassword } = req.body;
 
+    // Get the user's current password
+    const user = await models.auth.findOne({ where: { id: auth_id } });
+    const currentPassword = user.password;
+
+    // Compare the old password with the user's current password
+    const isMatch = await bcrypt.compare(oldPassword, currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ msg: 'Incorrect old password' });
+    }
+
+    // Hash the new password
     const salt = await bcrypt.genSalt(10);
-    const { password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-    await models.auth.update({ password: hashedPassword }, {
-      where: {
-        id: admin.auth_id
-      }
-    });
+    // Update the user's password
+    await models.auth.update(
+      { password: hashedPassword },
+      { where: { id: auth_id } }
+    );
 
-    res.status(200).json({ msg: "Admin Updated" });
+    res.status(200).json({ msg: 'Password updated successfully' });
   } catch (error) {
-    res.status(400).json({ msg: error.message });
+    res.status(500).json({ msg: error.message });
   }
 };
 
@@ -149,4 +158,4 @@ const updatePassword = async (req, res) => {
 //   }
 // }
 
-module.exports = { getProfile, updateProfile };
+module.exports = { getProfile, updateProfile,changePassword };

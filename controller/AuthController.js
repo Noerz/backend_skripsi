@@ -68,9 +68,10 @@ const login = async (req, res) => {
       const auth_id = auth[0].id;
       const name = auth[0].name;
       const email = auth[0].email;
+      const password = auth[0].password;
       const role = auth[0].role;
       const admin_id = admin[0].id;
-      console.log(admin_id)
+      console.log(password)
       accessToken = jwt.sign({ auth_id, name, email, role, admin_id }, process.env.ACCESS_TOKEN_SECRET);
     } else {
       console.log('user')
@@ -82,10 +83,11 @@ const login = async (req, res) => {
       const auth_id = auth[0].id;
       const name = auth[0].name;
       const email = auth[0].email;
+      const password = auth[0].password;
       const role = auth[0].role;
       const user_id = user[0].id;
-      console.log(user_id)
-      accessToken = jwt.sign({ auth_id, name, email, role, user_id }, process.env.ACCESS_TOKEN_SECRET);
+      console.log(password)
+      accessToken = jwt.sign({ auth_id, name, email, role, user_id,password }, process.env.ACCESS_TOKEN_SECRET);
     }
     res.status(200).json({ accessToken });
     res.end();

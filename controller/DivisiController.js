@@ -13,15 +13,8 @@ const getDivisi = async (req, res) => {
 
         const response = await models.division.findAll({
             where: whereCondition,
-            // attributes: ['id', 'name', 'email', 'gender', 'status'],
             attributes: [ 'name', 'description'],
-            // include: [
-            //     {
-            //         model: models.division,
-            //         attributes: ["name"],
-            //         as: 'division'
-            //     }
-            // ]
+            
         });
 
         res.status(200).json({ msg: "success", response });

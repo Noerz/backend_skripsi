@@ -22,6 +22,14 @@ module.exports = function(sequelize, DataTypes) {
     body: {
       type: DataTypes.TEXT,
       allowNull: true
+    },
+    file: {
+      type: DataTypes.STRING(150),
+      allowNull: false
+    },
+    url: {
+      type: DataTypes.STRING(100),
+      allowNull: false
     }
   }, {
     sequelize,

@@ -2,6 +2,7 @@ const db = require("../config/Database");
 const admin = require("../models/admin");
 const initModels = require("../models/init-models");
 const models = initModels(db);
+const path=require("path");
 const { Op } = require("sequelize")
 
 const getPost = async (req, res) => {
@@ -15,15 +16,7 @@ const getPost = async (req, res) => {
 
         const response = await models.post.findAll({
             where: whereCondition,
-            // attributes: ['id', 'name', 'email', 'gender', 'status'],
-            attributes: ['id', 'user_id', 'title', 'body'],
-            // include: [
-            //     {
-            //         model: models.division,
-            //         attributes: ["name"],
-            //         as: 'division'
-            //     }
-            // ]
+            
         });
 
         res.status(200).json(response);
@@ -34,16 +27,28 @@ const getPost = async (req, res) => {
 
 const createPost = async (req, res) => {
     try {
-
+        if (req.files === null) return res.status(400).json({ msg: "No File Uploaded" });
         const { admin_id, user_id, role, name, email } = req.decoded;
+        const file = req.files.file;
+        const fileSize = file.data.length;
+        const ext = path.extname(file.name);
+        const fileName = file.md5 + ext;
+        const url = `${req.protocol}://${req.get("host")}/images/${fileName}`;
+        const allowedType = ['.png', '.jpg', '.jpeg'];
+        if (!allowedType.includes(ext.toLowerCase())) return res.status(422).json({ msg: "Invalid Images" });
+        if (fileSize > 5000000) return res.status(422).json({ msg: "Image must be less than 5 MB" });
         console.log(admin_id);
         const body = {
-            user_id:admin_id,
+            user_id: admin_id,
             title: req.body.title,
             body: req.body.body,
+            file: fileName,
+            url: url
         }
-        const response = await models.post.create(body);
-        res.status(201).json({ msg: "success", response });
+        file.mv(`./public/images/${fileName}`, async (err) => {
+            const response = await models.post.create(body);
+            res.status(201).json({ msg: "success", response });
+        })
     } catch (error) {
         res.status(500).json({ msg: error.message });
     }

@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const DivisiRoute = require("./routes/DivisiRoute");
+const fileUpload= require("express-fileupload");
 const routes = require("./routes");
 const helmet = require("helmet");
 require("dotenv").config();
@@ -8,6 +8,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(fileUpload());
 app.use(express.urlencoded({ extended: true }));
 app.use(helmet({xPoweredBy:false}));
 app.use(express.static("public"));

@@ -2,7 +2,7 @@ const db = require("../config/Database");
 const admin = require("../models/admin");
 const initModels = require("../models/init-models");
 const models = initModels(db);
-const path=require("path");
+const path = require("path");
 const { Op } = require("sequelize")
 
 const getPost = async (req, res) => {
@@ -16,7 +16,7 @@ const getPost = async (req, res) => {
 
         const response = await models.post.findAll({
             where: whereCondition,
-            
+
         });
 
         res.status(200).json(response);
@@ -32,7 +32,8 @@ const createPost = async (req, res) => {
         const file = req.files.file;
         const fileSize = file.data.length;
         const ext = path.extname(file.name);
-        const fileName = file.md5 + ext;
+        const id = req.query.id;
+        const fileName = `image-${id}-${new Date().toISOString().split('T')[0].replace(/-/g, '')}${ext}`;
         const url = `${req.protocol}://${req.get("host")}/images/${fileName}`;
         const allowedType = ['.png', '.jpg', '.jpeg'];
         if (!allowedType.includes(ext.toLowerCase())) return res.status(422).json({ msg: "Invalid Images" });
@@ -55,24 +56,63 @@ const createPost = async (req, res) => {
 }
 
 const updatePost = async (req, res) => {
-    const user = await models.post.findOne({
-        where: {
-            id: req.query.id
-        }
-    });
-    if (!user) return res.status(404).json({ msg: "Post tidak ditemukan" });
-    const body = {
-        title: req.body.title,
-        body: req.body.body,
-    }
-
     try {
-        await models.post.update(body, {
+        const user = await models.post.findOne({
             where: {
                 id: req.query.id
             }
         });
-        res.status(200).json({ msg: "Post Updated" });
+
+        if (!user) return res.status(404).json({ msg: "Post not found" });
+
+        let body = {};
+
+        if (req.files) {
+            const file = req.files.file;
+            const fileSize = file.data.length;
+            const ext = path.extname(file.name);
+            const id = req.query.id;
+            const fileName = `image-${id}-${new Date().toISOString().split('T')[0].replace(/-/g, '')}${ext}`;
+            const url = `${req.protocol}://${req.get("host")}/images/${fileName}`;
+
+            if (fileSize > 5000000) return res.status(422).json({ msg: "Image must be less than 5 MB" });
+
+            file.mv(`./public/images/${fileName}`, async (err) => {
+
+                body = {
+                    title: req.body.title,
+                    body: req.body.body,
+                    file: fileName,
+                    url: url
+                };
+
+                await models.post.update(body, {
+                    where: {
+                        id: req.query.id
+                    }
+                });
+
+                res.status(200).json({ msg: "Post updated" });
+
+            });
+
+        } else {
+
+            body = {
+                title: req.body.title,
+                body: req.body.body
+            };
+
+            await models.post.update(body, {
+                where: {
+                    id: req.query.id
+                }
+            });
+
+            res.status(200).json({ msg: "Post updated" });
+
+        }
+
     } catch (error) {
         res.status(400).json({ msg: error.message });
     }

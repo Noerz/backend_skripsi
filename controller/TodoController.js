@@ -4,14 +4,24 @@ const models = initModels(db);
 const { Op } = require("sequelize")
 
 const getTodo = async (req, res) => {
+    const year = req.query.year;
+    const { id } = req.query;
+    console.log(year);
+    let whereCondition = {};
+    if (id) {
+        whereCondition.id = id;
+    }
+    if (year) {
+        const yearStart = `${year}-01-01`; // Tanggal awal tahun
+        const yearEnd = `${year}-12-31`; // Tanggal akhir tahun
+
+        whereCondition = {
+            due_on: {
+                [Op.between]: [yearStart, yearEnd] // Menggunakan operator between untuk mencocokkan rentang tanggal
+            }
+        };
+    }
     try {
-        const { id } = req.query;
-        const whereCondition = {};
-
-        if (id) {
-            whereCondition.id = id;
-        }
-
         const response = await models.todo.findAll({
             where: whereCondition,
             include: [
@@ -29,16 +39,15 @@ const getTodo = async (req, res) => {
                 title: x.title,
                 due_on: x.due_on,
                 status: x.status,
-
             }
             array.push(obj);
         }
 
         res.status(200).json(array);
     } catch (error) {
-        res.status(500).json({ msg: error.message });
+        res.status(500).json({ message: error.message });
     }
-}
+};
 
 const createTodo = async (req, res) => {
     try {
@@ -99,4 +108,4 @@ const deleteTodo = async (req, res) => {
     }
 }
 
-module.exports = { getTodo, createTodo,updateTodo,deleteTodo}
+module.exports = { getTodo, createTodo, updateTodo, deleteTodo }

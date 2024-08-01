@@ -8,7 +8,7 @@ const nodemailer = require("nodemailer");
 const Register = async (req, res) => {
   try {
     const salt = await bcrypt.genSalt(10);
-    const { name, email, password, role, gender, status, idDivision, nik } = req.body; // Add nik to the request body
+    const { name, email, password, role, gender, status, division_id } = req.body;
     console.log(email);
     const hashPassword = await bcrypt.hash(password, salt);
 
@@ -24,10 +24,9 @@ const Register = async (req, res) => {
         name: name,
         email: email,
         gender: gender,
-        nik: nik, // Add nik field
-        status: status, // Add status field
-        idDivision: idDivision, // Use idDivision as per your model definition
-        idAuth: createdAuth.idAuth, // Assign auth_id from createdAuth
+        status: status,
+        division_id: division_id,
+        auth_id: createdAuth.id, // Assign auth_id from createdAuth
       };
       await models.admin.create(body);
     } else {
@@ -35,7 +34,7 @@ const Register = async (req, res) => {
         name: name,
         email: email,
         gender: gender,
-        idAuth: createdAuth.idAuth, // Assign auth_id from createdAuth
+        auth_id: createdAuth.id, // Assign auth_id from createdAuth
       };
       await models.user.create(body);
     }
@@ -63,33 +62,37 @@ const login = async (req, res) => {
       console.log('admin')
       const admin = await models.admin.findAll({
         where: {
-          idAuth: auth[0].idAuth
+          auth_id: auth[0].id
         }
       });
-      const auth_id = auth[0].idAuth;
+      const auth_id = auth[0].id;
       const name = auth[0].name;
       const email = auth[0].email;
+      const password = auth[0].password;
       const role = auth[0].role;
-      const admin_id = admin[0].idAdmin;
+      const admin_id = admin[0].id;
+      console.log(password)
       accessToken = jwt.sign({ auth_id, name, email, role, admin_id }, process.env.ACCESS_TOKEN_SECRET);
     } else {
       console.log('user')
       const user = await models.user.findAll({
         where: {
-          idAuth: auth[0].idAuth
+          auth_id: auth[0].id
         }
       });
-      const auth_id = auth[0].idAuth;
+      const auth_id = auth[0].id;
       const name = auth[0].name;
       const email = auth[0].email;
+      const password = auth[0].password;
       const role = auth[0].role;
       const user_id = user[0].id;
-      accessToken = jwt.sign({ auth_id, name, email, role, user_id }, process.env.ACCESS_TOKEN_SECRET);
+      console.log(password)
+      accessToken = jwt.sign({ auth_id, name, email, role, user_id,password }, process.env.ACCESS_TOKEN_SECRET);
     }
     res.status(200).json({ accessToken });
     res.end();
   } catch (error) {
-    res.status(500).json({ msg: error.message })
+    res.status(500).json({ msg: error.massage })
   }
 }
 
@@ -105,11 +108,12 @@ const resetPassword = async (req, res) => {
         pass: process.env.PASS_MAIL,
       }
     });
-    const { email } = req.body;
+    const { email } = req.body; // Mengambil nilai name dan email dari req.body
     if (email == null) return res.status(400).json({ msg: 'Email Kosong' });
-
+    // Tambahkan kondisi untuk memeriksa apakah email terdaftar dalam autentikasi
     const user = await models.auth.findOne({ where: { email: email } });
     if (!user) return res.status(400).json({ msg: 'Email tidak terdaftar' });
+
 
     if (!`${email}`.includes('@')) return res.status(400).json({ msg: 'Invalid Email' });
 
@@ -148,5 +152,4 @@ const resetPassword = async (req, res) => {
     res.status(500).json({ msg: error.message });
   }
 }
-
 module.exports = { Register, login, resetPassword };

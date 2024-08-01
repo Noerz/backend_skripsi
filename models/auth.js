@@ -1,19 +1,18 @@
 const Sequelize = require('sequelize');
-
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('auth', {
-    idAuth: {
-      type: DataTypes.CHAR(36),
+    id: {
+      autoIncrement: true,
+      type: DataTypes.INTEGER,
       allowNull: false,
-      primaryKey: true,
-      defaultValue: Sequelize.UUIDV4, // Automatically generate UUID
+      primaryKey: true
     },
     name: {
       type: DataTypes.STRING(55),
       allowNull: false
     },
     email: {
-      type: DataTypes.STRING(85),
+      type: DataTypes.STRING(100),
       allowNull: false,
       unique: "email"
     },
@@ -22,7 +21,7 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false
     },
     role: {
-      type: DataTypes.ENUM('admin','user'),
+      type: DataTypes.STRING(5),
       allowNull: false
     },
     createdAt: {
@@ -32,19 +31,20 @@ module.exports = function(sequelize, DataTypes) {
     },
     updatedAt: {
       type: DataTypes.DATE,
-      allowNull: false
+      allowNull: false,
+      defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP')
     }
   }, {
     sequelize,
     tableName: 'auth',
-    timestamps: true,
+    timestamps: false,
     indexes: [
       {
         name: "PRIMARY",
         unique: true,
         using: "BTREE",
         fields: [
-          { name: "idAuth" },
+          { name: "id" },
         ]
       },
       {

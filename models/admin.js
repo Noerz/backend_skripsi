@@ -1,87 +1,61 @@
 const Sequelize = require('sequelize');
-
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('admin', {
-    idAdmin: {
-      type: DataTypes.CHAR(36),
+    id: {
+      autoIncrement: true,
+      type: DataTypes.INTEGER,
       allowNull: false,
-      primaryKey: true,
-      defaultValue: Sequelize.UUIDV4, // Automatically generate UUID
-    },
-    nik: {
-      type: DataTypes.STRING(25),
-      allowNull: false,
-      unique: "nik",
-      defaultValue: ''
+      primaryKey: true
     },
     gender: {
-      type: DataTypes.ENUM('male','female'),
-      allowNull: false,
-      defaultValue: ''
+      type: DataTypes.ENUM('Male','Female'),
+      allowNull: true
     },
     status: {
-      type: DataTypes.ENUM('active','inactive'),
-      allowNull: false,
-      defaultValue: 'inactive'
+      type: DataTypes.ENUM('Active','Inactive'),
+      allowNull: true
     },
-    idAuth: {
-      type: DataTypes.CHAR(36),
+    auth_id: {
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: 'auth',
-        key: 'idAuth'
+        key: 'id'
       }
     },
-    idDivision: {
-      type: DataTypes.CHAR(36),
+    division_id: {
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: 'division',
-        key: 'idDivision'
+        key: 'id'
       }
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP')
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false
     }
   }, {
     sequelize,
     tableName: 'admin',
-    timestamps: true,
+    timestamps: false,
     indexes: [
       {
         name: "PRIMARY",
         unique: true,
         using: "BTREE",
         fields: [
-          { name: "idAdmin" },
+          { name: "id" },
         ]
       },
       {
-        name: "nik",
-        unique: true,
+        name: "auth_id",
         using: "BTREE",
         fields: [
-          { name: "nik" },
+          { name: "auth_id" },
         ]
       },
       {
-        name: "idAuth",
+        name: "division_id",
         using: "BTREE",
         fields: [
-          { name: "idAuth" },
-        ]
-      },
-      {
-        name: "idDivision",
-        using: "BTREE",
-        fields: [
-          { name: "idDivision" },
+          { name: "division_id" },
         ]
       },
     ]

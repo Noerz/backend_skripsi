@@ -1,40 +1,31 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('comment', {
-    idComment: {
-      type: DataTypes.CHAR(36),
+    id: {
+      autoIncrement: true,
+      type: DataTypes.INTEGER,
       allowNull: false,
-      primaryKey: true,
-      defaultValue: Sequelize.UUIDV4, // Automatically generate UUID
+      primaryKey: true
     },
-    body: {
-      type: DataTypes.TEXT,
-      allowNull: false
-    },
-    idArtikel: {
-      type: DataTypes.CHAR(36),
-      allowNull: false,
+    post_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
       references: {
-        model: 'artikel',
-        key: 'idArtikel'
+        model: 'post',
+        key: 'id'
       }
     },
-    idAuth: {
-      type: DataTypes.CHAR(36),
+    auth_id: {
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: 'auth',
-        key: 'idAuth'
+        key: 'id'
       }
     },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP')
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false
+    body: {
+      type: DataTypes.TEXT,
+      allowNull: true
     }
   }, {
     sequelize,
@@ -46,21 +37,21 @@ module.exports = function(sequelize, DataTypes) {
         unique: true,
         using: "BTREE",
         fields: [
-          { name: "idComment" },
+          { name: "id" },
         ]
       },
       {
-        name: "idArtikel",
+        name: "post_id",
         using: "BTREE",
         fields: [
-          { name: "idArtikel" },
+          { name: "post_id" },
         ]
       },
       {
-        name: "idAuth",
+        name: "user_id",
         using: "BTREE",
         fields: [
-          { name: "idAuth" },
+          { name: "auth_id" },
         ]
       },
     ]

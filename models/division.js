@@ -1,28 +1,19 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('division', {
-    idDivision: {
-      type: DataTypes.CHAR(36),
+    id: {
+      autoIncrement: true,
+      type: DataTypes.INTEGER,
       allowNull: false,
-      primaryKey: true,
-      defaultValue: Sequelize.UUIDV4, // Automatically generate UUID
+      primaryKey: true
     },
     name: {
-      type: DataTypes.STRING(55),
-      allowNull: false
+      type: DataTypes.STRING(50),
+      allowNull: true
     },
     description: {
-      type: DataTypes.TEXT,
-      allowNull: false
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP')
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false
+      type: DataTypes.STRING(150),
+      allowNull: true
     }
   }, {
     sequelize,
@@ -34,7 +25,7 @@ module.exports = function(sequelize, DataTypes) {
         unique: true,
         using: "BTREE",
         fields: [
-          { name: "idDivision" },
+          { name: "id" },
         ]
       },
     ]

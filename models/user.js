@@ -1,51 +1,42 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('user', {
-    idUser: {
-      type: DataTypes.CHAR(36),
+    id: {
+      autoIncrement: true,
+      type: DataTypes.INTEGER,
       allowNull: false,
-      primaryKey: true,
-      defaultValue: Sequelize.UUIDV4, // Automatically generate UUID
+      primaryKey: true
     },
     gender: {
-      type: DataTypes.ENUM('male','female'),
-      allowNull: false
+      type: DataTypes.ENUM('Male','Female'),
+      allowNull: true
     },
-    idAuth: {
-      type: DataTypes.CHAR(36),
+    auth_id: {
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: 'auth',
-        key: 'idAuth'
+        key: 'id'
       }
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP')
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false
     }
   }, {
     sequelize,
     tableName: 'user',
-    timestamps: true,
+    timestamps: false,
     indexes: [
       {
         name: "PRIMARY",
         unique: true,
         using: "BTREE",
         fields: [
-          { name: "idUser" },
+          { name: "id" },
         ]
       },
       {
-        name: "idAuth",
+        name: "auth_id",
         using: "BTREE",
         fields: [
-          { name: "idAuth" },
+          { name: "auth_id" },
         ]
       },
     ]

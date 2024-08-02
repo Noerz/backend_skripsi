@@ -1,33 +1,35 @@
 const db = require("../config/Database");
-const admin = require("../models/admin");
 const initModels = require("../models/init-models");
 const models = initModels(db);
 const path = require("path");
-const { Op } = require("sequelize")
 
 const getPost = async (req, res) => {
     try {
         const { id } = req.query;
-        const whereCondition = {};
+        const whereCondition = id ? { id } : {};
 
-        if (id) {
-            whereCondition.id = id;
-        }
+        const response = await models.post.findAll({ where: whereCondition });
 
-        const response = await models.post.findAll({
-            where: whereCondition,
-
+        res.status(200).json({
+            code: 200,
+            status: "success",
+            message: "Posts retrieved successfully",
+            data: response,
         });
-
-        res.status(200).json(response);
     } catch (error) {
-        res.status(500).json({ msg: error.message });
+        res.status(500).json({
+            code: 500,
+            status: "error",
+            message: error.message,
+            data: null,
+        });
     }
-}
+};
 
 const createPost = async (req, res) => {
     try {
-        if (req.files === null) return res.status(400).json({ msg: "No File Uploaded" });
+        if (!req.files) return res.status(400).json({ code: 400, status: "error", message: "No file uploaded", data: null });
+
         const { admin_id, user_id, role, name, email } = req.decoded;
         const file = req.files.file;
         const fileSize = file.data.length;
@@ -35,106 +37,123 @@ const createPost = async (req, res) => {
         const id = req.query.id;
         const fileName = `image-${id}-${new Date().toISOString().split('T')[0].replace(/-/g, '')}${ext}`;
         const url = `${req.protocol}://${req.get("host")}/images/${fileName}`;
-        const allowedType = ['.png', '.jpg', '.jpeg'];
-        if (!allowedType.includes(ext.toLowerCase())) return res.status(422).json({ msg: "Invalid Images" });
-        if (fileSize > 5000000) return res.status(422).json({ msg: "Image must be less than 5 MB" });
-        console.log(admin_id);
-        const body = {
+        const allowedTypes = ['.png', '.jpg', '.jpeg'];
+
+        if (!allowedTypes.includes(ext.toLowerCase())) return res.status(422).json({ code: 422, status: "error", message: "Invalid image format", data: null });
+        if (fileSize > 5000000) return res.status(422).json({ code: 422, status: "error", message: "Image must be less than 5 MB", data: null });
+
+        const postData = {
             user_id: admin_id,
             title: req.body.title,
             body: req.body.body,
             file: fileName,
-            url: url
-        }
+            url,
+        };
+
         file.mv(`./public/images/${fileName}`, async (err) => {
-            const response = await models.post.create(body);
-            res.status(201).json({ msg: "success", response });
-        })
+            if (err) return res.status(500).json({ code: 500, status: "error", message: "File upload failed", data: null });
+            const response = await models.post.create(postData);
+            res.status(201).json({
+                code: 201,
+                status: "success",
+                message: "Post created successfully",
+                data: response,
+            });
+        });
     } catch (error) {
-        res.status(500).json({ msg: error.message });
+        res.status(500).json({
+            code: 500,
+            status: "error",
+            message: error.message,
+            data: null,
+        });
     }
-}
+};
 
 const updatePost = async (req, res) => {
     try {
-        const user = await models.post.findOne({
-            where: {
-                id: req.query.id
-            }
-        });
+        const { id } = req.query;
+        const post = await models.post.findOne({ where: { id } });
+        if (!post) {
+            return res.status(404).json({
+                code: 404,
+                status: "error",
+                message: "Post not found",
+                data: null,
+            });
+        }
 
-        if (!user) return res.status(404).json({ msg: "Post not found" });
-
-        let body = {};
+        let updateData = { title: req.body.title, body: req.body.body };
 
         if (req.files) {
             const file = req.files.file;
             const fileSize = file.data.length;
             const ext = path.extname(file.name);
-            const id = req.query.id;
             const fileName = `image-${id}-${new Date().toISOString().split('T')[0].replace(/-/g, '')}${ext}`;
             const url = `${req.protocol}://${req.get("host")}/images/${fileName}`;
 
-            if (fileSize > 5000000) return res.status(422).json({ msg: "Image must be less than 5 MB" });
+            if (fileSize > 5000000) return res.status(422).json({ code: 422, status: "error", message: "Image must be less than 5 MB", data: null });
 
             file.mv(`./public/images/${fileName}`, async (err) => {
+                if (err) return res.status(500).json({ code: 500, status: "error", message: "File upload failed", data: null });
 
-                body = {
-                    title: req.body.title,
-                    body: req.body.body,
-                    file: fileName,
-                    url: url
-                };
+                updateData = { ...updateData, file: fileName, url };
+                await models.post.update(updateData, { where: { id } });
 
-                await models.post.update(body, {
-                    where: {
-                        id: req.query.id
-                    }
+                res.status(200).json({
+                    code: 200,
+                    status: "success",
+                    message: "Post updated successfully",
+                    data: null,
                 });
-
-                res.status(200).json({ msg: "Post updated" });
-
             });
-
         } else {
-
-            body = {
-                title: req.body.title,
-                body: req.body.body
-            };
-
-            await models.post.update(body, {
-                where: {
-                    id: req.query.id
-                }
+            await models.post.update(updateData, { where: { id } });
+            res.status(200).json({
+                code: 200,
+                status: "success",
+                message: "Post updated successfully",
+                data: null,
             });
-
-            res.status(200).json({ msg: "Post updated" });
-
         }
-
     } catch (error) {
-        res.status(400).json({ msg: error.message });
+        res.status(400).json({
+            code: 400,
+            status: "error",
+            message: error.message,
+            data: null,
+        });
     }
-}
+};
 
 const deletePost = async (req, res) => {
-    const post = await models.post.findOne({
-        where: {
-            id: req.query.id
-        }
-    });
-    if (!post) return res.status(404).json({ msg: "Post tidak ditemukan" });
     try {
-        await models.post.destroy({
-            where: {
-                id: post.id
-            }
-        });
-        res.status(200).json({ msg: "Post Deleted" });
-    } catch (error) {
-        res.status(400).json({ msg: error.message });
-    }
-}
+        const { id } = req.query;
+        const post = await models.post.findOne({ where: { id } });
+        if (!post) {
+            return res.status(404).json({
+                code: 404,
+                status: "error",
+                message: "Post not found",
+                data: null,
+            });
+        }
 
-module.exports = { getPost, createPost, updatePost, deletePost }
+        await models.post.destroy({ where: { id: post.id } });
+        res.status(200).json({
+            code: 200,
+            status: "success",
+            message: "Post deleted successfully",
+            data: null,
+        });
+    } catch (error) {
+        res.status(400).json({
+            code: 400,
+            status: "error",
+            message: error.message,
+            data: null,
+        });
+    }
+};
+
+module.exports = { getPost, createPost, updatePost, deletePost };

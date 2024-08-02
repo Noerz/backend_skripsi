@@ -1,83 +1,110 @@
 const db = require("../config/Database");
 const initModels = require("../models/init-models");
 const models = initModels(db);
-const { Op } = require("sequelize")
 
 const getUsers = async (req, res) => {
     try {
         const { id } = req.query;
-        const whereCondition = {};
+        const whereCondition = id ? { id } : {};
 
-        if (id) {
-            whereCondition.id = id;
-        }
+        const response = await db.query("SELECT name, email, gender FROM user INNER JOIN auth ON user.auth_id = auth.id;");
 
-        const response = await db.query("SELECT name,email,gender FROM user INNER JOIN auth ON user.auth_id = auth.id;")
-
-        res.status(200).json(response);
+        res.status(200).json({
+            code: 200,
+            status: "success",
+            message: "Users retrieved successfully",
+            data: response,
+        });
     } catch (error) {
-        res.status(500).json({ msg: error.message });
+        res.status(500).json({
+            code: 500,
+            status: "error",
+            message: error.message,
+            data: null,
+        });
     }
-}
+};
 
 const createUser = async (req, res) => {
     try {
-        const body = {
-            name: req.body.name,
-            email: req.body.email,
-            gender: req.body.gender,
-        }
-        const response = await models.user.create(body);
-        res.status(201).json({ msg: "success", response });
+        const { name, email, gender } = req.body;
+        const response = await models.user.create({ name, email, gender });
+        res.status(201).json({
+            code: 201,
+            status: "success",
+            message: "User created successfully",
+            data: response,
+        });
     } catch (error) {
-        res.status(500).json({ msg: error.message });
+        res.status(500).json({
+            code: 500,
+            status: "error",
+            message: error.message,
+            data: null,
+        });
     }
-}
+};
 
 const updateUser = async (req, res) => {
-    const user = await models.user.findOne({
-        where: {
-            id: req.query.id
-        }
-    });
-    if (!user) return res.status(404).json({ msg: "User tidak ditemukan" });
-    const body = {
-        name: req.body.name,
-        email: req.body.email,
-        gender: req.body.gender,
-        status: req.body.status,
-        division_id: req.body.division_id,
-    }
-
     try {
-        await models.user.update(body, {
-            where: {
-                id: req.query.id
-            }
+        const { id } = req.query;
+        const user = await models.user.findOne({ where: { id } });
+        if (!user) {
+            return res.status(404).json({
+                code: 404,
+                status: "error",
+                message: "User not found",
+                data: null,
+            });
+        }
+
+        const { name, email, gender, status, division_id } = req.body;
+        await models.user.update({ name, email, gender, status, division_id }, { where: { id } });
+
+        res.status(200).json({
+            code: 200,
+            status: "success",
+            message: "User updated successfully",
+            data: null,
         });
-        res.status(200).json({ msg: "User Updated" });
     } catch (error) {
-        res.status(400).json({ msg: error.message });
+        res.status(400).json({
+            code: 400,
+            status: "error",
+            message: error.message,
+            data: null,
+        });
     }
-}
+};
 
 const deleteUser = async (req, res) => {
-    const user = await models.user.findOne({
-        where: {
-            id: req.query.id
-        }
-    });
-    if (!user) return res.status(404).json({ msg: "User tidak ditemukan" });
     try {
-        await models.user.destroy({
-            where: {
-                id: user.id
-            }
-        });
-        res.status(200).json({ msg: "User Deleted" });
-    } catch (error) {
-        res.status(400).json({ msg: error.message });
-    }
-}
+        const { id } = req.query;
+        const user = await models.user.findOne({ where: { id } });
+        if (!user) {
+            return res.status(404).json({
+                code: 404,
+                status: "error",
+                message: "User not found",
+                data: null,
+            });
+        }
 
-module.exports = { getUsers, createUser, updateUser, deleteUser }
+        await models.user.destroy({ where: { id: user.id } });
+        res.status(200).json({
+            code: 200,
+            status: "success",
+            message: "User deleted successfully",
+            data: null,
+        });
+    } catch (error) {
+        res.status(400).json({
+            code: 400,
+            status: "error",
+            message: error.message,
+            data: null,
+        });
+    }
+};
+
+module.exports = { getUsers, createUser, updateUser, deleteUser };

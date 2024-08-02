@@ -6,147 +6,164 @@ const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 
 const Register = async (req, res) => {
-  try {
-    const salt = await bcrypt.genSalt(10);
-    const { name, email, password, role, gender, status, idDivision, nik } = req.body; // Add nik to the request body
-    console.log(email);
-    const hashPassword = await bcrypt.hash(password, salt);
+    try {
+        const { name, email, password, role, gender, status, idDivision, nik } = req.body;
+        const salt = await bcrypt.genSalt(10);
+        const hashPassword = await bcrypt.hash(password, salt);
 
-    const createdAuth = await models.auth.create({
-      name: name,
-      email: email,
-      password: hashPassword,
-      role: role,
-    });
+        const createdAuth = await models.auth.create({ name, email, password: hashPassword, role });
 
-    if (role === 'admin') {
-      const body = {
-        name: name,
-        email: email,
-        gender: gender,
-        nik: nik, // Add nik field
-        status: status, // Add status field
-        idDivision: idDivision, // Use idDivision as per your model definition
-        idAuth: createdAuth.idAuth, // Assign auth_id from createdAuth
-      };
-      await models.admin.create(body);
-    } else {
-      const body = {
-        name: name,
-        email: email,
-        gender: gender,
-        idAuth: createdAuth.idAuth, // Assign auth_id from createdAuth
-      };
-      await models.user.create(body);
+        const adminOrUserData = {
+            name,
+            email,
+            gender,
+            idAuth: createdAuth.idAuth,
+        };
+
+        if (role === 'admin') {
+            adminOrUserData.nik = nik;
+            adminOrUserData.status = status;
+            adminOrUserData.idDivision = idDivision;
+            await models.admin.create(adminOrUserData);
+        } else {
+            await models.user.create(adminOrUserData);
+        }
+
+        res.status(201).json({
+            code: 201,
+            status: "success",
+            message: "Registration successful",
+            data: createdAuth,
+        });
+    } catch (error) {
+        res.status(500).json({
+            code: 500,
+            status: "error",
+            message: error.message,
+            data: null,
+        });
     }
-
-    res.status(201).json({ msg: "success" });
-  } catch (error) {
-    res.status(500).json({ msg: error.message });
-  }
 };
 
 const login = async (req, res) => {
-  try {
-    const auth = await models.auth.findAll({
-      where: {
-        email: req.body.email,
-      }
-    });
-    if (!auth[0]) return res.status(400).json({ msg: "Email tidak ditemukan" });
-    const match = await bcrypt.compare(req.body.password, auth[0].password)
-    if (!match) return res.status(400).json({ msg: "Password Salah" });
+    try {
+        const { email, password } = req.body;
+        const auth = await models.auth.findOne({ where: { email } });
+        if (!auth) {
+            return res.status(400).json({
+                code: 400,
+                status: "error",
+                message: "Email not found",
+                data: null,
+            });
+        }
 
-    // Check Role Login
-    let accessToken;
-    if (auth[0].role == 'admin') {
-      console.log('admin')
-      const admin = await models.admin.findAll({
-        where: {
-          idAuth: auth[0].idAuth
+        const match = await bcrypt.compare(password, auth.password);
+        if (!match) {
+            return res.status(400).json({
+                code: 400,
+                status: "error",
+                message: "Incorrect password",
+                data: null,
+            });
         }
-      });
-      const auth_id = auth[0].idAuth;
-      const name = auth[0].name;
-      const email = auth[0].email;
-      const role = auth[0].role;
-      const admin_id = admin[0].idAdmin;
-      accessToken = jwt.sign({ auth_id, name, email, role, admin_id }, process.env.ACCESS_TOKEN_SECRET);
-    } else {
-      console.log('user')
-      const user = await models.user.findAll({
-        where: {
-          idAuth: auth[0].idAuth
+
+        const { idAuth, name, role } = auth;
+        let accessToken;
+        let userType = {};
+
+        if (role === 'admin') {
+            const admin = await models.admin.findOne({ where: { idAuth } });
+            userType = { admin_id: admin.idAdmin };
+        } else {
+            const user = await models.user.findOne({ where: { idAuth } });
+            userType = { user_id: user.id };
         }
-      });
-      const auth_id = auth[0].idAuth;
-      const name = auth[0].name;
-      const email = auth[0].email;
-      const role = auth[0].role;
-      const user_id = user[0].id;
-      accessToken = jwt.sign({ auth_id, name, email, role, user_id }, process.env.ACCESS_TOKEN_SECRET);
+
+        accessToken = jwt.sign({ idAuth, name, email, role, ...userType }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+
+        const result = {
+            idAuth,
+            name,
+            email,
+            role,
+            ...userType,
+            accessToken,
+        };
+
+        res.status(200).json({
+            code: 200,
+            status: "success",
+            message: "Login successful",
+            data: result,
+        });
+    } catch (error) {
+        res.status(500).json({
+            code: 500,
+            status: "error",
+            message: error.message,
+            data: null,
+        });
     }
-    res.status(200).json({ accessToken });
-    res.end();
-  } catch (error) {
-    res.status(500).json({ msg: error.message })
-  }
-}
+};
 
 const resetPassword = async (req, res) => {
-  try {
-    let transporter = nodemailer.createTransport({
-      service: process.env.SERVICE_MAIL,
-      host: process.env.HOST_MAIL,
-      port: process.env.PORT_MAIL,
-      secure: true,
-      auth: {
-        user: process.env.USER_MAIL,
-        pass: process.env.PASS_MAIL,
-      }
-    });
-    const { email } = req.body;
-    if (email == null) return res.status(400).json({ msg: 'Email Kosong' });
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ code: 400, status: "error", message: "Email is required", data: null });
+        if (!email.includes("@")) return res.status(400).json({ code: 400, status: "error", message: "Invalid email format", data: null });
 
-    const user = await models.auth.findOne({ where: { email: email } });
-    if (!user) return res.status(400).json({ msg: 'Email tidak terdaftar' });
+        const user = await models.auth.findOne({ where: { email } });
+        if (!user) return res.status(400).json({ code: 400, status: "error", message: "Email not registered", data: null });
 
-    if (!`${email}`.includes('@')) return res.status(400).json({ msg: 'Invalid Email' });
+        const password = generateRandomPassword();
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
-    let password = 'HIMTIF#';
-    const character = process.env.RANDOM_PASSWORD;
-    const characterLength = character.length;
-    let count = 0;
-    while (count < 8) {
-      password += character.charAt(Math.floor(Math.random() * characterLength));
-      count += 1;
+        await models.auth.update({ password: hashedPassword }, { where: { email } });
+
+        const transporter = nodemailer.createTransport({
+            service: process.env.SERVICE_MAIL,
+            host: process.env.HOST_MAIL,
+            port: process.env.PORT_MAIL,
+            secure: true,
+            auth: {
+                user: process.env.USER_MAIL,
+                pass: process.env.PASS_MAIL,
+            }
+        });
+        const mailOptions = {
+            from: process.env.USER_MAIL,
+            to: email,
+            subject: 'Reset Password',
+            text: `Your new password: ${password}`
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        res.status(200).json({
+            code: 200,
+            status: "success",
+            message: "Password reset successful",
+            data: null,
+        });
+    } catch (error) {
+        res.status(500).json({
+            code: 500,
+            status: "error",
+            message: error.message,
+            data: null,
+        });
     }
+};
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    await models.auth.update(
-      { password: hashedPassword },
-      {
-        where: {
-          email: email
-        }
-      }
-    );
-
-    const mailOptions = {
-      from: process.env.USER_MAIL,
-      to: email,
-      subject: 'Reset Password',
-      text: `Password baru Anda: ${password}`
-    };
-
-    await transporter.sendMail(mailOptions);
-
-    res.status(200).json({ msg: 'Password reset successful' });
-  } catch (error) {
-    res.status(500).json({ msg: error.message });
-  }
-}
+const generateRandomPassword = () => {
+    const character = process.env.RANDOM_PASSWORD;
+    let password = 'HIMTIF#';
+    for (let i = 0; i < 8; i++) {
+        password += character.charAt(Math.floor(Math.random() * character.length));
+    }
+    return password;
+};
 
 module.exports = { Register, login, resetPassword };

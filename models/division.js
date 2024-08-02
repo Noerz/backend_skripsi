@@ -27,7 +27,7 @@ module.exports = function(sequelize, DataTypes) {
   }, {
     sequelize,
     tableName: 'division',
-    timestamps: false,
+    timestamps: true,
     indexes: [
       {
         name: "PRIMARY",
